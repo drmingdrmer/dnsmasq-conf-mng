@@ -1,0 +1,1 @@
+* * * * * cd /Users/drmingdrmer/bash.xp/plugin/dnsmasqconf &&  /bin/sh mng.sh watch >> log 2>&1

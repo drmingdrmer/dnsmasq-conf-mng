@@ -1,0 +1,104 @@
+#!/bin/sh
+
+iface=$(/usr/sbin/netstat -nr | grep default | head -n1 | awk '{print $NF}')
+lenIface=${#iface}
+
+dir=/private/var/db/dhcpclient/leases/
+fns=$(ls $dir)
+
+for fn in $fns; do
+    pref=${fn:0:$lenIface}
+    if [ "$pref" == "$iface" ]; then
+        path=$dir/$fn
+        break
+    fi
+done
+
+
+
+if [ "x$path" == "x" ]; then
+    exit 1
+fi
+
+
+packetB64=$(cat $path | awk '
+/PacketData/{ start = 1; }
+start==1 {
+    print $0;
+    if ( $1 == "</data>" ) { start = 0; }
+}' \
+    | awk '!/</{ s=s $1 } END{ print s }')
+
+bytes=$(base64 -D <<< "$packetB64" | xxd -s240 -g1 -i | awk '{ s=s $0 } END { print s }' | tr -d ' ' | tr ',' ' ')
+
+# Parse options:
+
+
+hex2dec()
+{
+    local n=$1
+    let c=0x$n
+
+    # on mac echo does not have '-e' option
+    echo $c
+}
+
+
+oDHCP_DNS_Server=06
+DNSServers=
+
+st=opt
+
+for byte in $bytes; do
+
+    byte=${byte:2:2}
+
+    case $st in
+        opt)
+            if [ "$byte" == "$oDHCP_DNS_Server" ]; then
+                st=dns_len
+            else
+                st=skip_start
+            fi
+            ;;
+
+        dns_len)
+            st=dns_ip
+            n=$(hex2dec $byte)
+            ip=
+            i=4
+            ;;
+
+        dns_ip)
+            let i=i-1
+            let n=n-1
+
+            ip=$ip.$(hex2dec $byte)
+
+            if [ $i -eq 0 ]; then
+                ip=${ip:1}
+                DNSServers="$DNSServers $ip"
+                ip=
+                i=4
+                if [ $n -eq 0 ]; then
+                    DNSServers=${DNSServers:1}
+                    echo $DNSServers
+                    exit
+                fi
+            fi
+            ;;
+
+        skip_start)
+            n=$(hex2dec $byte)
+            st=skip
+            ;;
+
+        skip)
+            let n=n-1
+            if [ $n -eq 0 ]; then
+                st=opt
+            fi
+            ;;
+
+    esac
+done
