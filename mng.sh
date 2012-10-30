@@ -30,6 +30,7 @@ if [ "x$1" == "xconf" ]; then
 	server=/ggpht.com/8.8.8.8
 	server=/github.com/8.8.8.8
 	server=/facebook.com/8.8.8.8
+	server=/box.net/8.8.8.8
 	
 	address=/test/127.0.0.1
 	
