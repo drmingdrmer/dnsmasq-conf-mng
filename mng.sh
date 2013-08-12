@@ -24,8 +24,8 @@ if [ "x$1" == "xconf" ]; then
 	
 	# listen-address=
 	
-	server=/google.com/8.8.8.8
-	server=/googleusercontent.com/8.8.8.8
+	# server=/google.com/8.8.8.8
+	# server=/googleusercontent.com/8.8.8.8
 	server=/dropbox.com/8.8.8.8
 	server=/ggpht.com/8.8.8.8
 	server=/github.com/8.8.8.8
@@ -33,6 +33,9 @@ if [ "x$1" == "xconf" ]; then
 	server=/box.net/8.8.8.8
 	
 	address=/test/127.0.0.1
+	address=/google.com/203.208.46.148
+	address=/googleusercontent.com/203.208.46.148
+	address=/code.google.com/74.125.31.100
 	
 	END
 
